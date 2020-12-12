@@ -1,0 +1,58 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: django-deployment
+spec:
+  replicas: 1
+  minReadySeconds: 5
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 1  
+  selector:
+    matchLabels: 
+      app: django-kube-app
+      tier: app
+  template:
+    metadata:
+      name: django
+      labels:
+        app: django-kube-app
+        tier: app
+    spec:
+      containers:
+      - name: django
+        image: andybubune/pollapp
+        imagePullPolicy: IfNotPresent
+        #command: ["python", "manage.py", "migrate"]
+        env:
+        - name: RAILS_LOG_TO_STDOUT
+          value: "true"
+        - name: RAILS_SERVE_STATIC_FILES
+          value: "true"
+        - name: DATABASE_NAME
+          value: "postgres"
+        - name: DATABASE_PORT
+          value: "5432"
+        - name: DATABASE_HOST
+          value: "postgres"
+        - name: DATABASE_USER
+          valueFrom:
+            secretKeyRef:
+              name: "postgres-user-pass"
+              key: "username"
+        - name: DATABASE_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: "postgres-user-pass"
+              key: "password"
+        - name: REDIS_URL
+          value: "redis"
+        - name: REDIS_PORT
+          value: "6379"
+        - name: RAILS_ENV
+          value: "production"
+        ports:
+          - containerPort: 8001

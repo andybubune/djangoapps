@@ -1,0 +1,38 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: setup
+spec:
+  template:
+    metadata:
+      name: setup
+    spec:
+      containers:
+      - name: setup
+        image: andybubune/pollapp
+        args: ["python", "manage.py", "migrate"]
+        env:
+        - name: DATABASE_NAME
+          value: "postgres"
+        - name: DATABASE_PORT
+          value: "5432"
+        - name: DATABASE_HOST
+          value: "postgres"
+        - name: DATABASE_USER
+          valueFrom:
+            secretKeyRef:
+              name: "postgres-user-pass"
+              key: "username"
+        - name: DATABASE_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: "postgres-user-pass"
+              key: "password"
+        - name: REDIS_URL
+          value: "redis"
+        - name: REDIS_PORT
+          value: "6379"
+        - name: RAILS_ENV
+          value: "production"
+      restartPolicy: Never
+
